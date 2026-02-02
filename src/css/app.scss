@@ -1,1 +1,38 @@
-// app global css in SCSS form
+
+
+
+.container {
+  //max-width: 1240px;
+  //margin-left: auto;
+  //margin-right: auto;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+h1 {
+  font-size: 50px;
+  font-weight: 700;
+  margin: 0;
+  color: $primary;
+}
+
+.menu-account {
+  border-radius: 8px;
+  max-width: unset !important;
+  .user-data {
+    display: flex;
+    flex-direction: column;
+    > div {
+      display: flex;
+      flex-direction: column;
+      .label {
+        color: $grey;
+
+      }
+    }
+  }
+  .q-btn {
+    border-radius: 0;
+  }
+
+}
