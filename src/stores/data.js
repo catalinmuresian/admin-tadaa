@@ -5,10 +5,12 @@ import {Cookies} from "quasar";
 
 export const useDataStore = defineStore('data', {
   state: () => ({
+    token: null,
     user: {},
     successSendEmail: false,
     isFetching: null,
     fetchingID: null,
+    orderDetails: null,
     events: [],
     errorMessageMagicLink: null,
     event: {
@@ -22,6 +24,26 @@ export const useDataStore = defineStore('data', {
   },
 
   actions: {
+    clearOrderDetails () {
+      this.orderDetails = null
+    },
+    async get_details (id) {
+      this.fetchingID = 'order_details'
+      this.isFetching = true
+      try {
+        const { data } = await api.post(ep.getDetails, {
+          token: token || this.token,
+          order: id
+        })
+
+        this.orderDetails = data
+      } catch (e) {
+
+      } finally {
+        this.isFetching = false
+        this.fetchingID = null
+      }
+    },
     clear_data () {
       this.event = {}
     },
@@ -31,7 +53,7 @@ export const useDataStore = defineStore('data', {
       this.isFetching = true
       try {
         const { data } = await api.post(ep.getReports, {
-          token: token || Cookies.get('token'),
+          token: token || this.token,
           event
         })
 
@@ -92,7 +114,7 @@ export const useDataStore = defineStore('data', {
 
         if (!Cookies.get('token')) {
           Cookies.set('token', token, {
-            expires: 1000
+            expires: 30
           })
         }
 
