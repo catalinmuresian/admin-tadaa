@@ -69,14 +69,15 @@
             </q-item-section>
           </q-item>
           <div>
-            <q-item-label header class="text-weight-bolder">
+            <q-item-label header
+                          class="text-weight-bolder">
               Events
             </q-item-label>
             <q-expansion-item
               v-for="{title, logo, _id} in store.events"
               :key="_id">
               <template v-slot:header>
-                <q-item-section avatar>
+                <q-item-section avatar class="event-avatar">
                   <q-avatar v-if="logo?.path"
                             :icon="`img:${IMGS_BASE_URL}${logo?.path}`"
                             text-color="white"
@@ -154,6 +155,12 @@ function handleAction (action, _id, eventTitle) {
 .q-layout {
   .q-drawer-container {
     .q-drawer {
+      .q-expansion-item {
+        .event-avatar {
+          filter: brightness(10);
+        }
+      }
+
       .q-expansion-item__toggle-icon {
         color: $grey;
       }
