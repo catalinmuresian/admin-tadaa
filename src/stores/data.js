@@ -1,7 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import {api, token} from "boot/axios.js";
 import ep from "stores/ep.js";
-import {Cookies} from "quasar";
+import {Cookies, Notify} from "quasar";
 
 export const useDataStore = defineStore('data', {
   state: () => ({
@@ -46,6 +46,41 @@ export const useDataStore = defineStore('data', {
     },
     clear_data () {
       this.event = {}
+    },
+
+    async change_company ({_id, route}) {
+      this.fetchingID = 'change_company'
+      this.isFetching = true
+      try {
+        const { data } = await api.post(ep.changeCompany, {
+          token: token || this.token,
+          company: _id
+        })
+
+        await this.check_token({
+          token: token || this.token,
+          route
+        })
+
+        this.router.push({name: 'dashboard'})
+        this.clear_data()
+
+        Notify.create({
+          message: 'Compania a fost schimbata cu success',
+          type: 'positive',
+          position: 'top',
+        })
+      } catch (e) {
+        Notify.create({
+          message: 'Eroare schimbare companie',
+          type: 'negative',
+          position: 'top',
+        })
+
+      } finally {
+        this.isFetching = false
+        this.fetchingID = null
+      }
     },
 
     async get_reports (event, eventTitle) {

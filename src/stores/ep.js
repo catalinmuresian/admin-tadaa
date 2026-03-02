@@ -3,7 +3,8 @@ const ep = {
   getEvents: '/v2/tickets/events/get/',
   checkToken: '/v2/admin/user/token_check/',
   getReports: '/v2/admin/reports/tickets/get/',
-  getDetails: '/v2/admin/reports/tickets/get_details/'
+  getDetails: '/v2/admin/reports/tickets/get_details/',
+  changeCompany: '/v2/admin/company/switch/',
 }
 
 export default ep

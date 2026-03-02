@@ -54,7 +54,30 @@
       class="bg-primary text-white">
       <q-list>
         <q-item-label header>
-          {{ store.user.company?.display }}
+          <q-btn-dropdown
+            class="companies-dropdown"
+            v-if="store.user?.company?.length > 1"
+            no-refocus
+            rounded
+            no-caps
+            :loading="fetchingID === 'change_company' && isFetching"
+            unelevated
+            :label="labelCompany">
+            <q-list>
+              <q-item
+                v-for="{_id, display} in store.user?.company"
+                :clickable="_id !== store.user.selected_company"
+                active-class="text-accent bg-accent-4"
+                :active="_id === store.user.selected_company"
+                v-close-popup
+                @click="handleSelectedComp(_id)">
+                <q-item-section>
+                  <q-item-label>{{ display }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <span v-else>{{ labelCompany }}</span>
         </q-item-label>
         <q-list>
           <q-item
@@ -87,7 +110,6 @@
                             text-color="white"
                   />
                 </q-item-section>
-
                 <q-item-section>
                   {{ title }}
                 </q-item-section>
@@ -116,7 +138,7 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {useDataStore} from "stores/data.js";
 import {IMGS_BASE_URL} from "boot/axios.js";
 import {Cookies} from "quasar";
@@ -126,9 +148,22 @@ const store = useDataStore()
 const route = useRoute()
 const token = route.query?.token || Cookies.get('token')
 
+const isFetching = computed(() => store.isFetching)
+const fetchingID = computed(() => store.fetchingID)
+
 store.check_token({token, route})
 const leftDrawerOpen = ref(false)
 const account = ref(false)
+
+const labelCompany = computed(() => {
+  if (Array.isArray(store.user.company)) {
+    const found = store.user.company.find(
+      (obj) => obj._id === store.user.selected_company
+    );
+    return found?.display ?? '';
+  }
+  return '';
+});
 
 
 function toggleLeftDrawer () {
@@ -137,6 +172,10 @@ function toggleLeftDrawer () {
 
 function handleLogout () {
   store.logout()
+}
+
+function handleSelectedComp (_id) {
+  store.change_company({_id, route})
 }
 
 function handleAction (action, _id, eventTitle) {
