@@ -1,65 +1,5 @@
 <template>
   <div class="reports">
-    <q-dialog
-      @hide="clearOrderDetails"
-      class="order-details-modal"
-      v-model="details">
-      <q-card>
-        <q-card-actions class="close-modal" align="right">
-          <q-btn flat round dense icon="close" color="primary" v-close-popup />
-        </q-card-actions>
-        <q-card-section>
-          <div>
-            <span class="label">
-              Domain
-            </span>
-            <span class="value">
-              {{ order.domain }}
-            </span>
-          </div>
-          <div>
-            <span class="label">
-              First name
-            </span>
-            <span class="value">
-              {{ order.first_name }}
-            </span>
-          </div>
-          <div>
-            <span class="label">
-              Last name
-            </span>
-            <span class="value">
-              {{ order.last_name }}
-            </span>
-          </div>
-          <div>
-            <span class="label">
-              Email
-            </span>
-            <span class="value">
-              {{ order.email }}
-            </span>
-          </div>
-          <div>
-            <span class="label">
-              Phone
-            </span>
-            <span class="value">
-              {{ order.phone }}
-            </span>
-          </div>
-          <div>
-            <span class="label">
-              Transaction ID
-            </span>
-            <span class="value">
-              {{ order.transactionID }}
-            </span>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
     <div class="container">
       <h1>Reports</h1>
       <q-table
@@ -92,92 +32,156 @@
       <q-table
         :loading="isLoading"
         :rows="rows"
-        :columns="columns"
+        :columns="columns2"
         :pagination="{rowsPerPage: 50}"
-        :filter="filter"
-        row-key="_id">
-        <template v-slot:top-left>
-          <q-input dense
-                   debounce="300"
-                   v-model="filter"
-                   placeholder="Search">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-          <q-btn
-            color="primary"
-            icon="archive"
-            round
-            no-caps
-            @click="exportTable"
-          />
-        </template>
+        row-key="day">
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td
-              :props="props"
-              key="details"
-              class="text-left">
-              <q-btn
-                no-caps
-                color="secondary"
-                outline
-                dense
-                style="padding: 3px 20px;"
-                :loading="store.isFetching && store.fetchingID === 'order_details'"
-                rounded
-                label="Details"
-                @click="handleDetails(props.row.order_id)"
-              />
+            <q-td auto-width>
+              <q-btn size="sm"
+                     color="accent"
+                     round dense
+                     @click="props.expand = !props.expand"
+                     :icon="props.expand ? 'remove' : 'add'" />
             </q-td>
             <q-td
               :props="props"
-              key="name"
+              key="day"
               class="text-left">
-              {{ props.row?.name}}
+              {{  date.formatDate(props.row?.day * 1000, 'DD.MM.YYYY') }}
             </q-td>
             <q-td
               :props="props"
-              key="category"
+              key="quantity"
               class="text-left">
-              {{ props.row?.category}}
+              {{  props.row?.quantity }}
             </q-td>
-            <q-td
-              :props="props"
-              key="code"
-              class="text-left">
-              {{ props.row?.code}}
-            </q-td>
-            <q-td
-              :props="props"
-              key="discount_code"
-              class="text-left">
-              {{ props.row?.discount_code}}
-            </q-td>
-            <q-td
-              :props="props"
-              key="subtotal_price"
-              class="text-left">
-              {{  `${props.row?.subtotal_price / 100} lei`}}
-            </q-td>
-            <q-td
-              :props="props"
-              key="total_price"
-              class="text-left">
-              {{  `${props.row?.total_price / 100} lei` }}
-            </q-td>
-            <q-td
-              :props="props"
-              key="_created"
-              class="text-left">
-              {{  date.formatDate(props.row?._created * 1000, 'DD.MM.YYYY') }}
-            </q-td>
-            <q-td
-              :props="props"
-              key="_created"
-              class="text-left">
-              {{ date.formatDate(props.row?._created  * 1000, 'HH:mm') }}
+          </q-tr>
+          <q-tr v-show="props.expand" :props="props">
+            <q-td colspan="100%">
+              <q-table
+                :loading="isLoading"
+                :rows="props.row.list"
+                :columns="columns"
+                hide-bottom
+                hide-no-data
+                hide-pagination
+                flat
+                row-key="_id">
+                <template v-slot:body="props">
+                  <q-tr :props="props">
+                    <q-td auto-width>
+                      <q-btn size="sm"
+                             color="accent"
+                             round dense
+                             @click="props.expand = !props.expand; props.expand && handleDetails({ id: props.row.order_id, day: props.row._created })"
+                             :icon="props.expand ? 'remove' : 'add'" />
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="name"
+                      class="text-left">
+                      {{ props.row?.name}}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="category"
+                      class="text-left">
+                      {{ props.row?.category}}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="code"
+                      class="text-left">
+                      {{ props.row?.code}}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="discount_code"
+                      class="text-left">
+                      {{ props.row?.discount_code}}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="subtotal_price"
+                      class="text-left">
+                      {{  `${props.row?.subtotal_price / 100} lei`}}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="total_price"
+                      class="text-left">
+                      {{  `${props.row?.total_price / 100} lei` }}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="_created"
+                      class="text-left">
+                      {{  date.formatDate(props.row?._created * 1000, 'DD.MM.YYYY') }}
+                    </q-td>
+                    <q-td
+                      :props="props"
+                      key="_created"
+                      class="text-left">
+                      {{ date.formatDate(props.row?._created  * 1000, 'HH:mm') }}
+                    </q-td>
+                  </q-tr>
+                  <q-tr v-show="props.expand" :props="props">
+                    <q-td colspan="100%">
+                      <q-table
+                        :loading="isLoading"
+                        :rows="props.row.ticket_data || []"
+                        :columns="columns3"
+                        hide-bottom
+                        hide-no-data
+                        hide-pagination
+                        flat
+                        row-key="_id">
+                        <template v-slot:body="props">
+                          <q-tr :props="props">
+                            <q-td
+                              :props="props"
+                              key="domain"
+                              class="text-left">
+                              {{ props.row?.domain}}
+                            </q-td>
+                            <q-td
+                              :props="props"
+                              key="first_name"
+                              class="text-left">
+                              {{ props.row?.first_name}}
+                            </q-td>
+                            <q-td
+                              :props="props"
+                              key="last_name"
+                              class="text-left">
+                              {{ props.row?.last_name}}
+                            </q-td>
+                            <q-td
+                              :props="props"
+                              key="email"
+                              class="text-left">
+                              {{ props.row?.email}}
+                            </q-td>
+                            <q-td
+                              :props="props"
+                              key="phone"
+                              class="text-left">
+                              {{ props.row?.phone}}
+                            </q-td>
+                            <q-td
+                              :props="props"
+                              key="transactionID"
+                              class="text-left">
+                              {{ props.row?.transactionID}}
+                            </q-td>
+                          </q-tr>
+                        </template>
+                      </q-table>
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
             </q-td>
           </q-tr>
         </template>
@@ -194,11 +198,7 @@ import {date, exportFile, useQuasar} from "quasar";
 const store = useDataStore()
 const filter = ref('')
 const columns = [
-  {
-    name: 'details',
-    label: 'Details',
-    align: 'left'
-  },
+  {name: 'details'},
   {
     name: 'name',
     label: 'Name',
@@ -260,6 +260,68 @@ const columns = [
     sortable: true
   },
 ]
+const columns2 = [
+  {},
+  {
+    name: 'day',
+    label: 'Day',
+    align: 'left',
+    field: 'day',
+    sortable: true
+  },
+  {
+    name: 'quantity',
+    label: 'Quantity',
+    align: 'left',
+    field: 'quantity',
+    sortable: true,
+  },
+]
+const columns3 = [
+  {
+    name: 'domain',
+    label: 'Domain',
+    align: 'left',
+    field: 'domain',
+    sortable: true
+  },
+  {
+    name: 'first_name',
+    label: 'First Name',
+    align: 'left',
+    field: 'first_name',
+    sortable: true
+  },
+  {
+    name: 'last_name',
+    label: 'First Name',
+    align: 'left',
+    field: 'last_name',
+    sortable: true
+  },
+  {
+    name: 'email',
+    label: 'Email',
+    align: 'left',
+    field: 'email',
+    sortable: true
+  },
+  {
+    name: 'phone',
+    label: 'Phone',
+    align: 'left',
+    field: 'phone',
+    sortable: true
+  },
+  {
+    name: 'transactionID',
+    label: 'Transaction ID',
+    align: 'left',
+    field: 'transactionID',
+    sortable: true
+  },
+]
+
 const columnsTotals = [
   {
     name: 'label',
@@ -273,6 +335,8 @@ const columnsTotals = [
 const $q = useQuasar()
 const details = ref(false)
 const rows = computed(() => store.event.reports?.tickets || [])
+
+
 const rowsTotals = computed(() => {
   let rows = []
   if (store.event.reports?.totals) {
@@ -342,8 +406,8 @@ function exportTable () {
   }
 }
 
-function handleDetails (id) {
-  store.get_details(id)
+function handleDetails ({id, day}) {
+  store.get_details({id, day})
 }
 
 function clearOrderDetails () {
@@ -353,7 +417,7 @@ function clearOrderDetails () {
 const order = computed(() => store.orderDetails)
 
 watch(() => order.value, (value) => {
-  details.value = !!value
+  // details.value = !!value
 })
 
 </script>

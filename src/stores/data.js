@@ -1,4 +1,4 @@
-import { defineStore, acceptHMRUpdate } from 'pinia'
+import {acceptHMRUpdate, defineStore} from 'pinia'
 import {api, token} from "boot/axios.js";
 import ep from "stores/ep.js";
 import {Cookies, Notify} from "quasar";
@@ -10,12 +10,12 @@ export const useDataStore = defineStore('data', {
     successSendEmail: false,
     isFetching: null,
     fetchingID: null,
-    orderDetails: null,
+    orderDetails: [],
     events: [],
     errorMessageMagicLink: null,
     event: {
       title: '',
-      reports: []
+      reports: {}
     }
   }),
 
@@ -27,7 +27,7 @@ export const useDataStore = defineStore('data', {
     clearOrderDetails () {
       this.orderDetails = null
     },
-    async get_details (id) {
+    async get_details ({id, day}) {
       this.fetchingID = 'order_details'
       this.isFetching = true
       try {
@@ -35,8 +35,19 @@ export const useDataStore = defineStore('data', {
           token: token || this.token,
           order: id
         })
+        const timestamp = day
 
-        this.orderDetails = data
+
+
+        this.event.reports?.tickets.forEach((obj) => {
+          if ((obj.day * 1) === timestamp) {
+            obj.list.forEach((o) => {
+              if (o.order_id === id) {
+                o.ticket_data = [data]
+              }
+            })
+          }
+        })
       } catch (e) {
 
       } finally {
@@ -93,7 +104,21 @@ export const useDataStore = defineStore('data', {
         })
 
         this.event.title = eventTitle
-        this.event.reports = data
+        this.event.reports.totals = data.totals
+        this.event.reports.tickets = Object.entries(
+          data.tickets.reduce((acc, bilet) => {
+            const ziua = bilet._created
+
+            if (!acc[ziua]) {
+              acc[ziua] = [];
+            }
+
+            acc[ziua].push(bilet);
+
+            return acc;
+          }, {})
+        ).map(([day, list]) => ({day, list, quantity: list.length}))
+
         this.router.replace({query: {id: event}})
       } catch (e) {
 
