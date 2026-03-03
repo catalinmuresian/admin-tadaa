@@ -15,7 +15,10 @@ export const useDataStore = defineStore('data', {
     errorMessageMagicLink: null,
     event: {
       title: '',
-      reports: {}
+      reports: {
+        totals: {},
+        tickets: []
+      }
     }
   }),
 
@@ -56,7 +59,13 @@ export const useDataStore = defineStore('data', {
       }
     },
     clear_data () {
-      this.event = {}
+      this.event = {
+        title: '',
+        reports: {
+          totals: {},
+          tickets: []
+        }
+      }
     },
 
     async change_company ({_id, route}) {
@@ -119,7 +128,7 @@ export const useDataStore = defineStore('data', {
           }, {})
         ).map(([day, list]) => ({day, list, quantity: list.length}))
 
-        this.router.replace({query: {id: event}})
+        this.router.replace({name: 'reports', query: {id: event}})
       } catch (e) {
 
       } finally {
