@@ -33,6 +33,7 @@ export const useDataStore = defineStore('data', {
     async get_details ({id, day}) {
       this.fetchingID = 'order_details'
       this.isFetching = true
+
       try {
         const { data } = await api.post(ep.getDetails, {
           token: token || this.token,
@@ -77,13 +78,14 @@ export const useDataStore = defineStore('data', {
           company: _id
         })
 
+        this.clear_data()
+        this.router.push({name: 'dashboard'})
+
+
         await this.check_token({
           token: token || this.token,
           route
         })
-
-        this.router.push({name: 'dashboard'})
-        this.clear_data()
 
         Notify.create({
           message: 'Compania a fost schimbata cu success',
@@ -128,8 +130,9 @@ export const useDataStore = defineStore('data', {
           }, {})
         ).map(([day, list]) => ({day, list, quantity: list.length}))
 
-        this.router.replace({name: 'reports', query: {id: event}})
+        // this.router.replace({name: 'reports', query: {id: event}})
       } catch (e) {
+        this.router.push({name: 'dashboard'})
 
       } finally {
         this.isFetching = false
@@ -193,16 +196,14 @@ export const useDataStore = defineStore('data', {
           ? this.router.push({name: 'dashboard'})
           : this.router.replace({query: {token: undefined, ...route.query}});
 
-        if (route.query.id) {
+        if (route.name === 'reports') {
           let eventTitle
           data?.events.forEach(obj => {
             if (obj._id === route.query.id) {
               eventTitle = obj.title
             }
           })
-          if (route.name === 'reports') {
-            await this.get_reports(route.query.id, eventTitle)
-          }
+          await this.get_reports(route.query.id, eventTitle)
         }
       } catch (e) {
         Cookies.remove('token')

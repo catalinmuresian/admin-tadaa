@@ -115,7 +115,7 @@
                 </q-item-section>
               </template>
               <q-list class="q-pl-lg">
-                <q-item to="/reports"
+                <q-item :to="`/reports?id=${_id}`"
                         @click="handleAction('reports', _id, title)"
                         active-class="q-item-no-link-highlighting">
                   <q-item-section avatar>

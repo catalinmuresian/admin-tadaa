@@ -2,35 +2,21 @@
   <div class="reports">
     <div class="container">
       <h1>Reports</h1>
+      <div class="table-cards row">
+        <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4"
+             v-for="({label, value, key}, index) in rowsTotals"
+             :key="key">
+          <ReportCard
+            class="q-card"
+            :title="label"
+            :value="key === 'total_revenue' ? `${value / 100} lei` : value"
+            :card-key="key"
+            :color="COLORS[index % COLORS.length]" />
+        </div>
+      </div>
       <q-table
-        class="table-cards"
-        grid
-        hide-pagination
-        hide-bottom
-        :pagination="{ sortBy: 'label', descending: false }"
-        :rows-per-page-options="[0]"
-        :rows="rowsTotals"
-        :columns="columnsTotals"
-        row-key="label"
-        binary-state-sort>
-        <template v-slot:item="props">
-          <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4">
-            <q-card
-              :class="{
-              'bg-orange-2': props.row.label === 'Total revenue',
-              'bg-green-2': props.row.label === 'Total tickets',
-              'bg-blue-1': !['Total revenue', 'Total tickets'].includes(props.row.label)
-              }">
-              <q-card-section>
-                <div class="label-card">{{ props.row.label }}</div>
-                <div>{{ props.row.label === 'Total revenue' ? `${props.row.value / 100} lei` : props.row.value }}</div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </template>
-      </q-table>
-      <q-table
-        :loading="isLoading"
+        class="q-table-main"
+        :loading="isLoading && fetchingID === 'reports'"
         :rows="rows"
         :columns="columns2"
         :pagination="{rowsPerPage: 50}"
@@ -60,7 +46,8 @@
           <q-tr v-show="props.expand" :props="props">
             <q-td colspan="100%">
               <q-table
-                :loading="isLoading"
+                class="table-2"
+                :loading="isLoading && fetchingID === 'reports'"
                 :rows="props.row.list"
                 :columns="columns"
                 hide-bottom
@@ -129,11 +116,10 @@
                   <q-tr v-show="props.expand" :props="props">
                     <q-td colspan="100%">
                       <q-table
-                        :loading="isLoading"
+                        :loading="isLoading && fetchingID === 'order_details'"
                         :rows="props.row.ticket_data || []"
                         :columns="columns3"
                         hide-bottom
-                        hide-no-data
                         hide-pagination
                         flat
                         row-key="_id">
@@ -191,12 +177,19 @@
 </template>
 
 <script setup>
-
+import ReportCard from 'components/ReportCard.vue'
 import {computed, onMounted, ref, watch} from "vue";
 import {useDataStore} from "stores/data.js";
 import {date, exportFile, useQuasar} from "quasar";
 const store = useDataStore()
 const filter = ref('')
+
+const COLORS = ref([
+  '#e05c2a', '#e8b84b', '#5b8dee', '#3ecf8e',
+  '#f472b6', '#22d3ee', '#a78bfa', '#fb923c',
+  '#34d399', '#f87171', '#818cf8', '#facc15'
+])
+
 const columns = [
   {name: 'details'},
   {
@@ -282,56 +275,40 @@ const columns3 = [
     name: 'domain',
     label: 'Domain',
     align: 'left',
-    field: 'domain',
-    sortable: true
+    field: 'domain'
   },
   {
     name: 'first_name',
     label: 'First Name',
     align: 'left',
-    field: 'first_name',
-    sortable: true
+    field: 'first_name'
   },
   {
     name: 'last_name',
     label: 'First Name',
     align: 'left',
-    field: 'last_name',
-    sortable: true
+    field: 'last_name'
   },
   {
     name: 'email',
     label: 'Email',
     align: 'left',
-    field: 'email',
-    sortable: true
+    field: 'email'
   },
   {
     name: 'phone',
     label: 'Phone',
     align: 'left',
-    field: 'phone',
-    sortable: true
+    field: 'phone'
   },
   {
     name: 'transactionID',
     label: 'Transaction ID',
     align: 'left',
-    field: 'transactionID',
-    sortable: true
+    field: 'transactionID'
   },
 ]
 
-const columnsTotals = [
-  {
-    name: 'label',
-    field: 'label'
-  },
-  {
-    name: 'value',
-    field: 'value',
-  }
-]
 const $q = useQuasar()
 const details = ref(false)
 const rows = computed(() => store.event.reports?.tickets || [])
@@ -349,15 +326,17 @@ const rowsTotals = computed(() => {
     keys.forEach(k => {
       rows.push(
         {
+          key: k,
           label: ['total_tickets', 'total_revenue'].includes(k) ? labels[k] : k,
           value: store.event.reports?.totals?.[k]
         })
     })
   }
-  return rows || []
+  return rows.reverse() || []
 })
 
-const isLoading = computed(() => store.fetchingID === 'reports' && store.isFetching)
+const isLoading = computed(() =>  store.isFetching)
+const fetchingID = computed(() => store.fetchingID)
 
 function wrapCsvValue (val, formatFn, row) {
   let formatted = formatFn !== void 0
@@ -431,6 +410,21 @@ watch(() => order.value, (value) => {
     .label-card {
       font-weight: 500;
       color: grey;
+    }
+    .q-table-main {
+      border-radius: 8px;
+      .q-td[colspan] {
+        background: #E5E5E5;
+        padding-top: 0;
+        .q-table__container {
+          border-radius: 0 0 4px 4px;
+        }
+      }
+      .q-tr:hover .q-td[colspan]:before {
+        background: #E5E5E5;
+      }
+
+
     }
     .q-table__top {
       .q-table__control {
