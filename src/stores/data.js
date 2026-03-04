@@ -5,6 +5,7 @@ import {Cookies, Notify} from "quasar";
 
 export const useDataStore = defineStore('data', {
   state: () => ({
+    exportListData: null,
     token: null,
     user: {},
     successSendEmail: false,
@@ -40,8 +41,6 @@ export const useDataStore = defineStore('data', {
           order: id
         })
         const timestamp = day
-
-
 
         this.event.reports?.tickets.forEach((obj) => {
           if ((obj.day * 1) === timestamp) {
@@ -116,6 +115,8 @@ export const useDataStore = defineStore('data', {
 
         this.event.title = eventTitle
         this.event.reports.totals = data.totals
+        this.exportListData = data.tickets
+
         this.event.reports.tickets = Object.entries(
           data.tickets.reduce((acc, bilet) => {
             const ziua = bilet._created
@@ -129,6 +130,7 @@ export const useDataStore = defineStore('data', {
             return acc;
           }, {})
         ).map(([day, list]) => ({day, list, quantity: list.length}))
+          .sort((a, b) => Number(b.day) - Number(a.day))
 
         // this.router.replace({name: 'reports', query: {id: event}})
       } catch (e) {

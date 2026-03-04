@@ -14,6 +14,15 @@
             :color="COLORS[index % COLORS.length]" />
         </div>
       </div>
+      <div class="container-actions">
+        <q-btn
+          color="primary"
+          icon="archive"
+          round
+          no-caps
+          @click="exportTable"
+        />
+      </div>
       <q-table
         class="q-table-main"
         :loading="isLoading && fetchingID === 'reports'"
@@ -189,7 +198,6 @@ const COLORS = ref([
   '#f472b6', '#22d3ee', '#a78bfa', '#fb923c',
   '#34d399', '#f87171', '#818cf8', '#facc15'
 ])
-
 const columns = [
   {name: 'details'},
   {
@@ -252,6 +260,69 @@ const columns = [
     field: '_created',
     sortable: true
   },
+
+]
+const exportColumns = [
+  {
+    name: 'name',
+    label: 'Name',
+    align: 'left',
+    field: 'name',
+    sortable: true
+  },
+  {
+    name: 'category',
+    label: 'Category',
+    align: 'left',
+    field: 'category',
+    sortable: true
+  },
+  {
+    name: 'code',
+    label: 'Ticket code',
+    align: 'left',
+    field: 'code',
+    format: val => `${val}`,
+    sortable: true
+  },
+  {
+    name: 'discount_code',
+    label: 'Discount code',
+    align: 'left',
+    field: 'discount_code',
+    format: val => `${val ?? '-'}`,
+    sortable: true
+  },
+  {
+    name: 'subtotal_price',
+    label: 'Subtotal',
+    align: 'left',
+    field: 'subtotal_price',
+    sort: (a, b, rowA, rowB) => parseInt(a, 10) - parseInt(b, 10),
+    sortable: true
+  },
+  {
+    name: 'total_price',
+    label: 'Total',
+    align: 'left',
+    field: 'total_price',
+    sort: (a, b, rowA, rowB) => parseInt(a, 10) - parseInt(b, 10),
+    sortable: true
+  },
+  {
+    name: '_created',
+    label: 'Date',
+    align: 'left',
+    field: row => date.formatDate(row?._created * 1000, 'DD.MM.YYYY'),
+    sortable: true
+  },
+  {
+    name: '_created',
+    label: 'Hour',
+    align: 'left',
+    field: row => date.formatDate(row?._created * 1000, 'HH:mm'),
+    sortable: true
+  },
 ]
 const columns2 = [
   {},
@@ -309,10 +380,11 @@ const columns3 = [
   },
 ]
 
+
+
 const $q = useQuasar()
 const details = ref(false)
 const rows = computed(() => store.event.reports?.tickets || [])
-
 
 const rowsTotals = computed(() => {
   let rows = []
@@ -337,6 +409,8 @@ const rowsTotals = computed(() => {
 
 const isLoading = computed(() =>  store.isFetching)
 const fetchingID = computed(() => store.fetchingID)
+const order = computed(() => store.orderDetails)
+const exportListData = computed(() => store.exportListData)
 
 function wrapCsvValue (val, formatFn, row) {
   let formatted = formatFn !== void 0
@@ -361,7 +435,7 @@ function wrapCsvValue (val, formatFn, row) {
 function exportTable () {
   // naive encoding to csv format
   const content = [columns.map(col => wrapCsvValue(col.label))].concat(
-    rows.value.map(row => columns.map(col => wrapCsvValue(
+    exportListData.value.map(row => exportColumns.map(col => wrapCsvValue(
       typeof col.field === 'function'
         ? col.field(row)
         : row[ col.field === void 0 ? col.name : col.field ],
@@ -393,17 +467,24 @@ function clearOrderDetails () {
   store.clearOrderDetails()
 }
 
-const order = computed(() => store.orderDetails)
-
-watch(() => order.value, (value) => {
-  // details.value = !!value
+watch(() => rows.value, (value) => {
+  // console.log(value)
 })
+
 
 </script>
 
 <style lang="scss">
 .reports {
   .container {
+    .container-actions {
+      display: flex;
+      .q-btn {
+        margin-left: auto;
+        display: flex;
+        margin-bottom: 20px;
+      }
+    }
     .table-cards {
       margin-bottom: 40px;
     }
